@@ -1,5 +1,12 @@
 # Decision Notes -- Exchange Rate Provider
 
+## 0. Framework Version (.NET 10 LTS)
+
+- The assignment allows choosing any .NET family tech/packages.
+- Chose **.NET 10 (LTS)** to avoid legacy runtime and stay on a supported, long-lived baseline.
+- This choice is not for performance optimization or new complexity; it's a maintainability/support choice.
+- We intentionally keep the implementation simple and avoid advanced runtime-specific optimizations (AOT, trimming, heavy resilience policies) because the scope is a small console app.
+
 ## 1. Data Source Choice
 
 - **Czech National Bank (CNB) daily fixing** selected as the authoritative source.

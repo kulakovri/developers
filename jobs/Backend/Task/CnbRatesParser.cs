@@ -32,7 +32,7 @@ namespace ExchangeRateUpdater
             if (string.IsNullOrWhiteSpace(content))
                 yield break;
 
-            var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = content.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var line in lines.Skip(HeaderLinesToSkip))
             {
