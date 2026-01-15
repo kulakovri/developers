@@ -1,10 +1,20 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ExchangeRateUpdater
 {
     public class ExchangeRateProvider
     {
+        private const string TargetCurrencyCode = "CZK";
+
+        private readonly IExchangeRatesSource _ratesSource;
+
+        public ExchangeRateProvider(IExchangeRatesSource ratesSource)
+        {
+            _ratesSource = ratesSource ?? throw new ArgumentNullException(nameof(ratesSource));
+        }
+
         /// <summary>
         /// Should return exchange rates among the specified currencies that are defined by the source. But only those defined
         /// by the source, do not return calculated exchange rates. E.g. if the source contains "CZK/USD" but not "USD/CZK",
@@ -13,7 +23,14 @@ namespace ExchangeRateUpdater
         /// </summary>
         public IEnumerable<ExchangeRate> GetExchangeRates(IEnumerable<Currency> currencies)
         {
-            return Enumerable.Empty<ExchangeRate>();
+            var requestedCodes = new HashSet<string>(currencies.Select(c => c.Code), StringComparer.OrdinalIgnoreCase);
+
+            if (!requestedCodes.Contains(TargetCurrencyCode))
+                return Enumerable.Empty<ExchangeRate>();
+
+            // Future improvement: add caching here to avoid repeated HTTP calls for the same day's rates.
+            var content = _ratesSource.GetLatestRatesContent();
+            return CnbRatesParser.Parse(content, requestedCodes, new Currency(TargetCurrencyCode));
         }
     }
 }

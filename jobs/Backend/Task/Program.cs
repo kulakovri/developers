@@ -1,11 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ExchangeRateUpdater
 {
     public static class Program
     {
+        private const string DefaultCnbBaseUrl = "https://www.cnb.cz";
+
         private static IEnumerable<Currency> currencies = new[]
         {
             new Currency("USD"),
@@ -21,9 +25,22 @@ namespace ExchangeRateUpdater
 
         public static void Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var cnbBaseUrl = configuration["CnbApi:BaseUrl"] ?? DefaultCnbBaseUrl;
+
+            var services = new ServiceCollection();
+            services.AddSingleton<IExchangeRatesSource>(_ => new CnbRatesSource(cnbBaseUrl));
+            services.AddTransient<ExchangeRateProvider>();
+
+            using var serviceProvider = services.BuildServiceProvider();
+
             try
             {
-                var provider = new ExchangeRateProvider();
+                var provider = serviceProvider.GetRequiredService<ExchangeRateProvider>();
                 var rates = provider.GetExchangeRates(currencies);
 
                 Console.WriteLine($"Successfully retrieved {rates.Count()} exchange rates:");
