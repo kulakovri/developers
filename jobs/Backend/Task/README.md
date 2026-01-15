@@ -1,6 +1,6 @@
 # Exchange Rate Updater
 
-A .NET 10 console application that fetches daily foreign currency exchange rates from the Czech National Bank (CNB). It filters rates by a configurable list of currencies and outputs them to the console in a human-readable format.
+A .NET 10 console application that fetches daily foreign currency exchange rates from the Czech National Bank (CNB). It filters rates by a configurable list of currencies and outputs them to the console.
 
 ## Behavior Rules
 
@@ -12,18 +12,13 @@ A .NET 10 console application that fetches daily foreign currency exchange rates
 
 ## Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (pinned via `global.json`)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 
 ## How to Run
 
 ```bash
-./run.sh
-```
-
-Or manually:
-
-```bash
-dotnet run --project ExchangeRateUpdater.csproj
+./run.sh          # default (summary output)
+./run.sh -v       # verbose (debug logs)
 ```
 
 ## How to Test
@@ -32,27 +27,13 @@ dotnet run --project ExchangeRateUpdater.csproj
 ./test.sh
 ```
 
-Or manually:
-
-```bash
-dotnet test
-```
-
 ## Configuration
 
-The CNB API base URL can be configured via:
-
-| Method | Key / Variable | Example |
-|--------|----------------|---------|
-| appsettings.json | `CnbApi:BaseUrl` | `"https://www.cnb.cz"` |
-| Environment variable | `CnbApi__BaseUrl` | `export CnbApi__BaseUrl=https://www.cnb.cz` |
-
-If neither is set, defaults to `https://www.cnb.cz`.
-
-## Architecture
-
-`Program.cs` wires DI and logging. `ExchangeRateProvider` orchestrates fetch (via `IExchangeRatesSource`) and parse (via `CnbRatesParser`). The `IExchangeRatesSource` abstraction enables unit testing with a fake implementation.
+| Method | Key | Default |
+|--------|-----|---------|
+| appsettings.json | `CnbApi:BaseUrl` | `https://www.cnb.cz` |
+| Environment variable | `CnbApi__BaseUrl` | — |
 
 ## Design Decisions
 
-See [DECISIONS.md](DECISIONS.md) for detailed rationale on data source choice, error handling, caching trade-offs, and extensibility considerations.
+See [DECISIONS.md](DECISIONS.md).
