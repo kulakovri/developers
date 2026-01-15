@@ -27,15 +27,12 @@ namespace ExchangeRateUpdater
         /// </summary>
         public IEnumerable<ExchangeRate> GetExchangeRates(IEnumerable<Currency> currencies)
         {
-            if (currencies is null)
-                return Enumerable.Empty<ExchangeRate>();
-
             var requestedCodes = new HashSet<string>(currencies.Select(c => c.Code), StringComparer.OrdinalIgnoreCase);
 
             if (!requestedCodes.Contains(TargetCurrencyCode))
             {
                 _logger.LogDebug("CZK not requested; returning empty result set");
-                return Enumerable.Empty<ExchangeRate>();
+                return [];
             }
 
             // Future improvement: add caching here to avoid repeated HTTP calls for the same day's rates.
