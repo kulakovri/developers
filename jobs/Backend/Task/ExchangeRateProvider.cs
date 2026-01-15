@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,6 +7,7 @@ namespace ExchangeRateUpdater
     public class ExchangeRateProvider
     {
         private const string TargetCurrencyCode = "CZK";
+        private static readonly Currency TargetCurrency = new(TargetCurrencyCode);
 
         private readonly IExchangeRatesSource _ratesSource;
 
@@ -23,6 +24,9 @@ namespace ExchangeRateUpdater
         /// </summary>
         public IEnumerable<ExchangeRate> GetExchangeRates(IEnumerable<Currency> currencies)
         {
+            if (currencies is null)
+                return Enumerable.Empty<ExchangeRate>();
+
             var requestedCodes = new HashSet<string>(currencies.Select(c => c.Code), StringComparer.OrdinalIgnoreCase);
 
             if (!requestedCodes.Contains(TargetCurrencyCode))
@@ -30,7 +34,7 @@ namespace ExchangeRateUpdater
 
             // Future improvement: add caching here to avoid repeated HTTP calls for the same day's rates.
             var content = _ratesSource.GetLatestRatesContent();
-            return CnbRatesParser.Parse(content, requestedCodes, new Currency(TargetCurrencyCode));
+            return CnbRatesParser.Parse(content, requestedCodes, TargetCurrency);
         }
     }
 }

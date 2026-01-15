@@ -29,6 +29,9 @@ namespace ExchangeRateUpdater
         /// <returns>Exchange rates matching requested currencies.</returns>
         public static IEnumerable<ExchangeRate> Parse(string content, HashSet<string> requestedCodes, Currency targetCurrency)
         {
+            if (string.IsNullOrWhiteSpace(content))
+                yield break;
+
             var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var line in lines.Skip(HeaderLinesToSkip))
