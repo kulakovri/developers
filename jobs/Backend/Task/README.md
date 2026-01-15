@@ -1,6 +1,6 @@
 # Exchange Rate Updater
 
-A .NET 6 console application that fetches daily foreign currency exchange rates from the Czech National Bank (CNB). It filters rates by a configurable list of currencies and outputs them to the console in a human-readable format.
+A .NET 10 console application that fetches daily foreign currency exchange rates from the Czech National Bank (CNB). It filters rates by a configurable list of currencies and outputs them to the console in a human-readable format.
 
 ## Behavior Rules
 
@@ -12,7 +12,7 @@ A .NET 6 console application that fetches daily foreign currency exchange rates 
 
 ## Prerequisites
 
-- [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (pinned via `global.json`)
 
 ## How to Run
 
@@ -51,31 +51,7 @@ If neither is set, defaults to `https://www.cnb.cz`.
 
 ## Architecture
 
-```
-Program.cs
-    |
-    +-- DI wiring (ServiceCollection)
-    |
-    v
-ExchangeRateProvider (orchestration)
-    |
-    +-- IExchangeRatesSource (interface)
-    |       |
-    |       +-- CnbRatesSource (HTTP fetch)
-    |
-    +-- CnbRatesParser (static, parsing logic)
-```
-
-| Component | Responsibility |
-|-----------|----------------|
-| `CnbRatesSource` | Fetches raw text from CNB daily.txt endpoint |
-| `CnbRatesParser` | Parses pipe-delimited text into `ExchangeRate` objects |
-| `ExchangeRateProvider` | Orchestrates fetch + parse, filters by requested currencies |
-| `Program.cs` | Configures DI, resolves provider, outputs results |
-
-**Tests** are split into:
-- `ExchangeRateProviderTests` -- orchestration logic (uses fake source)
-- `CnbRatesParserTests` -- parsing logic (pure functions)
+`Program.cs` wires DI and logging. `ExchangeRateProvider` orchestrates fetch (via `IExchangeRatesSource`) and parse (via `CnbRatesParser`). The `IExchangeRatesSource` abstraction enables unit testing with a fake implementation.
 
 ## Design Decisions
 

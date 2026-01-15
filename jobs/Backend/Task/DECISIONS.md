@@ -3,7 +3,7 @@
 ## 0. Framework Version (.NET 10 LTS)
 
 - The assignment allows choosing any .NET family tech/packages.
-- Chose **.NET 10 (LTS)** to avoid legacy runtime and stay on a supported, long-lived baseline.
+- Chose **.NET 10 (LTS)** to use a supported LTS baseline; .NET 6 is EOL.
 - This choice is not for performance optimization or new complexity; it's a maintainability/support choice.
 - We intentionally keep the implementation simple and avoid advanced runtime-specific optimizations (AOT, trimming, heavy resilience policies) because the scope is a small console app.
 
@@ -13,7 +13,7 @@
 - Reasons:
   - Official, publicly available, no API key required.
   - Simple plain-text format (pipe-delimited), easy to parse.
-  - Reliable uptime; data updates once daily at ~14:30 CET.
+  - Reliable uptime; data updates daily.
   - Suitable for a read-only task with no write/mutation requirements.
 - Alternative sources (ECB, Fixer.io, Open Exchange Rates) were considered but add complexity (XML parsing, authentication, rate limits).
 
