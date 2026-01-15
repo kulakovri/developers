@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace ExchangeRateUpdater
 {
@@ -10,10 +11,12 @@ namespace ExchangeRateUpdater
         private static readonly Currency TargetCurrency = new(TargetCurrencyCode);
 
         private readonly IExchangeRatesSource _ratesSource;
+        private readonly ILogger<ExchangeRateProvider> _logger;
 
-        public ExchangeRateProvider(IExchangeRatesSource ratesSource)
+        public ExchangeRateProvider(IExchangeRatesSource ratesSource, ILogger<ExchangeRateProvider> logger)
         {
             _ratesSource = ratesSource ?? throw new ArgumentNullException(nameof(ratesSource));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -30,11 +33,18 @@ namespace ExchangeRateUpdater
             var requestedCodes = new HashSet<string>(currencies.Select(c => c.Code), StringComparer.OrdinalIgnoreCase);
 
             if (!requestedCodes.Contains(TargetCurrencyCode))
+            {
+                _logger.LogDebug("CZK not requested; returning empty result set");
                 return Enumerable.Empty<ExchangeRate>();
+            }
 
             // Future improvement: add caching here to avoid repeated HTTP calls for the same day's rates.
             var content = _ratesSource.GetLatestRatesContent();
-            return CnbRatesParser.Parse(content, requestedCodes, TargetCurrency);
+            var rates = CnbRatesParser.Parse(content, requestedCodes, TargetCurrency).ToList();
+
+            _logger.LogDebug("Returning {Count} rates for requested currencies", rates.Count);
+
+            return rates;
         }
     }
 }

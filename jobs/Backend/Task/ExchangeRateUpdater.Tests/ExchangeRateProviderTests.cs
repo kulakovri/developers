@@ -1,4 +1,5 @@
 using System.Linq;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace ExchangeRateUpdater.Tests
@@ -17,7 +18,9 @@ Eurozone|euro|1|EUR|25.123";
         public void GetExchangeRates_WhenCzkNotRequested_ReturnsEmpty()
         {
             // Arrange: CZK is the target currency and must be in the request
-            var provider = new ExchangeRateProvider(new FakeRatesSource(ValidCnbContent));
+            var provider = new ExchangeRateProvider(
+                new FakeRatesSource(ValidCnbContent),
+                NullLogger<ExchangeRateProvider>.Instance);
             var currencies = new[] { new Currency("USD"), new Currency("EUR") }; // No CZK
 
             // Act
@@ -31,7 +34,9 @@ Eurozone|euro|1|EUR|25.123";
         public void GetExchangeRates_WhenCzkRequested_ReturnsMatchingRates()
         {
             // Arrange
-            var provider = new ExchangeRateProvider(new FakeRatesSource(ValidCnbContent));
+            var provider = new ExchangeRateProvider(
+                new FakeRatesSource(ValidCnbContent),
+                NullLogger<ExchangeRateProvider>.Instance);
             var currencies = new[] { new Currency("USD"), new Currency("CZK") };
 
             // Act
@@ -47,7 +52,9 @@ Eurozone|euro|1|EUR|25.123";
         public void GetExchangeRates_IsCaseInsensitiveForCurrencyCodes()
         {
             // Arrange: provider builds HashSet with OrdinalIgnoreCase
-            var provider = new ExchangeRateProvider(new FakeRatesSource(ValidCnbContent));
+            var provider = new ExchangeRateProvider(
+                new FakeRatesSource(ValidCnbContent),
+                NullLogger<ExchangeRateProvider>.Instance);
             var currencies = new[] { new Currency("usd"), new Currency("czk") }; // lowercase
 
             // Act
@@ -62,7 +69,9 @@ Eurozone|euro|1|EUR|25.123";
         public void GetExchangeRates_ReturnsEmptyWhenSourceIsEmpty()
         {
             // Arrange
-            var provider = new ExchangeRateProvider(new FakeRatesSource(""));
+            var provider = new ExchangeRateProvider(
+                new FakeRatesSource(""),
+                NullLogger<ExchangeRateProvider>.Instance);
             var currencies = new[] { new Currency("USD"), new Currency("CZK") };
 
             // Act

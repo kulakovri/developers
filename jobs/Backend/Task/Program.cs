@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ExchangeRateUpdater
 {
@@ -23,7 +24,7 @@ namespace ExchangeRateUpdater
             new Currency("XYZ")
         };
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
@@ -33,28 +34,52 @@ namespace ExchangeRateUpdater
             var cnbBaseUrl = configuration["CnbApi:BaseUrl"] ?? DefaultCnbBaseUrl;
 
             var services = new ServiceCollection();
-            services.AddSingleton<IExchangeRatesSource>(_ => new CnbRatesSource(cnbBaseUrl));
+
+            services.AddLogging(builder =>
+            {
+                builder.ClearProviders();
+                builder.AddSimpleConsole(options =>
+                {
+                    options.SingleLine = true;
+                    options.IncludeScopes = false;
+                });
+                builder.AddConfiguration(configuration.GetSection("Logging"));
+            });
+
+            services.AddSingleton<IExchangeRatesSource>(sp =>
+                new CnbRatesSource(cnbBaseUrl, sp.GetRequiredService<ILogger<CnbRatesSource>>()));
             services.AddTransient<ExchangeRateProvider>();
 
             using var serviceProvider = services.BuildServiceProvider();
 
+            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("ExchangeRateUpdater");
+            var summaryLogger = loggerFactory.CreateLogger("ExchangeRateUpdater.Summary");
+
+            logger.LogDebug("Starting ExchangeRateUpdater");
+            logger.LogDebug("CNB base URL: {BaseUrl}", cnbBaseUrl);
+            logger.LogDebug("Requested currencies: {Currencies}", string.Join(", ", currencies.Select(c => c.Code)));
+
             try
             {
                 var provider = serviceProvider.GetRequiredService<ExchangeRateProvider>();
-                var rates = provider.GetExchangeRates(currencies);
+                var rates = provider.GetExchangeRates(currencies).ToList();
 
-                Console.WriteLine($"Successfully retrieved {rates.Count()} exchange rates:");
+                logger.LogDebug("Retrieved {Count} exchange rates", rates.Count);
+
+                summaryLogger.LogInformation("Successfully retrieved {Count} exchange rates:", rates.Count);
                 foreach (var rate in rates)
                 {
-                    Console.WriteLine(rate.ToString());
+                    summaryLogger.LogInformation("{Rate}", rate.ToString());
                 }
+
+                return 0;
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Could not retrieve exchange rates: '{e.Message}'.");
+                logger.LogError(e, "Failed to retrieve exchange rates");
+                return 1;
             }
-
-            Console.ReadLine();
         }
     }
 }
